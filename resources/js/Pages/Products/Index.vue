@@ -1,10 +1,34 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 import { Head } from '@inertiajs/vue3';
+import { Link,useForm } from '@inertiajs/vue3';
+import TextInput from '@/Components/TextInput.vue';
 
 const props = defineProps({
-    products: {type:Object}
+    products: {type:Object},
+    search_str: String,
+    successMessage: String,
 });
+
+const successMessage = props.successMessage;
+
+const form = useForm({
+    id: '',
+    search_str: props.search_str || '',
+});
+
+const deleteProduct = (id, name) => {
+    if(confirm("Are you sure to delete " + name + "?")){
+        form.delete(route('products.destroy', id));
+    }
+}
+
+const search_go = () => {
+    form.get(route('products.index'))
+}
+
+console.log(props.products.length)
 </script>
 
 <template>
@@ -24,6 +48,24 @@ const props = defineProps({
 
             <div class="m-3 max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-2">
+                <div class="mt-3 mb-3 ml-3 flex">
+                    <Link :href="route('products.create')"
+                    :class="'px-4 py-2 bg-indigo-500 text-white border rounded-md font-semibold text-xs flex items-center gap-1'">
+                    <i class="fa-solid fa-plus-circle"></i>商品登録
+                    </Link>
+                </div>
+                <div>
+                    <TextInput
+                        id="search_str"
+                        type="text"
+                        class="block w-full"
+                        v-model="form.search_str"
+                        autocomplete="search_str"
+                        @blur="search_go"
+                    />
+                </div>
+                <span v-if="props.products.length===0" class="m-2">該当する商品はありません。</span>
+            </div>
             <table class="table-auto border border-gray-400 w-10/12 m-3">
             <thead>
             <tr class="bg-gray-100">
@@ -44,15 +86,20 @@ const props = defineProps({
                 <td class="border border-gray-400 px-4 py-2 text-right">{{ product.price }}</td>
                 <td class="border border-gray-400 px-4 py-2 text-right">{{ product.tax }}%</td>
                 <td class="border border-gray-400 px-4 py-2 text-center">
+                    <Link :href="route('products.edit',product.id)"
+                    :class="'px-4 py-2 bg-yellow-400 text-white border rounded-md text-xs'" >
+                    <i class="fa-solid fa-edit"></i>
+                    </Link>
                 </td>
                 <td class="border border-gray-400 px-4 py-2 text-center">
+                    <DangerButton @click="deleteProduct(product.id, product.name)">
+                    <i class="fa-solid fa-trash"></i>
+                    </DangerButton>
                 </td>
             </tr>
             </tbody>
         </table>
         </div>
-        </div>
-
         </div>
     </AuthenticatedLayout>
 </template>
